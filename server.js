@@ -51,18 +51,55 @@ function normalizePhoneNumber(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
-async function getCustomerIdByPhoneNumber(phoneNumber) {
+function normalizeText(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+}
+
+function customerResult(row) {
+  return {
+    customer_id: row["Customer ID"] || null,
+    loyalty_id: row["Loyalty ID"] || null,
+    coupon: {
+      active: row["Active Coupon"] || null,
+      offer: row["Coupon"] || null,
+      details: row["Coupon Details"] || null,
+      valid_from: row["Coupon Valid From"] || null,
+      valid_until: row["Coupon Valid Until"] || null,
+    },
+    meal_preference: row["Dietary Preference"] || null,
+  };
+}
+
+function findCustomers(rows, query) {
+  const searchText = normalizeText(query);
+  const searchPhone = normalizePhoneNumber(query);
+  const looksLikePhone = searchPhone.length >= 7;
+
+  return rows
+    .filter((row) => {
+      const customerName = normalizeText(row["Customer Name"]);
+      const customerPhone = normalizePhoneNumber(row["Phone Number"]);
+
+      if (looksLikePhone && customerPhone === searchPhone) {
+        return true;
+      }
+
+      return Boolean(searchText && customerName.includes(searchText));
+    })
+    .map(customerResult);
+}
+
+async function searchCustomers(query) {
   const response = await fetch(SHEET_CSV_URL);
   if (!response.ok) {
     throw new Error(`Google Sheets returned HTTP ${response.status}`);
   }
 
   const rows = parseCsv(await response.text());
-  const match = rows.find(
-    (row) => normalizePhoneNumber(row["Phone Number"]) === normalizePhoneNumber(phoneNumber),
-  );
-
-  return match ? match["Customer ID"] : null;
+  return findCustomers(rows, query);
 }
 
 function sendJson(res, statusCode, body) {
@@ -181,9 +218,9 @@ function sendHtml(res) {
   <main>
     <h1>Customer ID Lookup</h1>
     <form id="lookup-form">
-      <label for="phoneNumber">Phone number</label>
+      <label for="query">Name or phone number</label>
       <div class="row">
-        <input id="phoneNumber" name="phoneNumber" autocomplete="tel" inputmode="tel" placeholder="2016588874" required>
+        <input id="query" name="query" autocomplete="on" placeholder="Soumalya or 2016588874" required>
         <button type="submit">Search</button>
       </div>
     </form>
@@ -192,33 +229,39 @@ function sendHtml(res) {
 
   <script>
     const form = document.querySelector("#lookup-form");
-    const input = document.querySelector("#phoneNumber");
+    const input = document.querySelector("#query");
     const button = document.querySelector("button");
     const result = document.querySelector("#result");
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const phoneNumber = input.value.trim();
-      if (!phoneNumber) return;
+      const query = input.value.trim();
+      if (!query) return;
 
       button.disabled = true;
       result.className = "";
       result.textContent = "Searching...";
 
       try {
-        const response = await fetch("/api/customer-id?phoneNumber=" + encodeURIComponent(phoneNumber));
+        const response = await fetch("/api/customer-id?query=" + encodeURIComponent(query));
         const data = await response.json();
 
         if (!response.ok) {
           throw new Error(data.message || data.error || "Lookup failed");
         }
 
-        if (data.customer_id) {
+        if (data.matches && data.matches.length) {
+          const customer = data.matches[0];
           result.className = "success";
-          result.textContent = "Customer ID: " + data.customer_id;
+          result.innerHTML = [
+            "<strong>Customer ID:</strong> " + customer.customer_id,
+            "<strong>Loyalty ID:</strong> " + customer.loyalty_id,
+            "<strong>Coupon:</strong> " + (customer.coupon.offer || customer.coupon.details || "None"),
+            "<strong>Meal preference:</strong> " + (customer.meal_preference || "Not listed"),
+          ].join("<br>");
         } else {
           result.className = "error";
-          result.textContent = "No customer found for that phone number.";
+          result.textContent = "No customer found for that search.";
         }
       } catch (error) {
         result.className = "error";
@@ -241,25 +284,32 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url.pathname === "/api/customer-id") {
-    const phoneNumber = url.searchParams.get("phoneNumber");
-    if (!phoneNumber) {
-      sendJson(res, 400, { message: "phoneNumber is required", customer_id: null });
+    const query =
+      url.searchParams.get("query") ||
+      url.searchParams.get("name") ||
+      url.searchParams.get("phoneNumber");
+
+    if (!query) {
+      sendJson(res, 400, {
+        message: "query is required. Search by full name, part of a name, or phone number.",
+        matches: [],
+      });
       return;
     }
 
     try {
-      const customerId = await getCustomerIdByPhoneNumber(phoneNumber);
+      const matches = await searchCustomers(query);
       sendJson(res, 200, {
-        message: customerId
-          ? "Customer ID found."
-          : "No customer found for that phone number.",
-        phone_number: phoneNumber,
-        customer_id: customerId,
+        message: matches.length
+          ? `${matches.length} customer match${matches.length === 1 ? "" : "es"} found.`
+          : "No customer found for that search.",
+        query,
+        matches,
       });
     } catch (error) {
       sendJson(res, 502, {
         message: "Could not read the Google Sheet. Check internet access and sheet sharing.",
-        customer_id: null,
+        matches: [],
         detail: error.message,
       });
     }

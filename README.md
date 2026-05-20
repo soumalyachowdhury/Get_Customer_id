@@ -1,18 +1,19 @@
 # Customer ID Lookup Agent
 
-Browser-accessible agent that reads a public Google Sheet and returns a customer ID when a user enters their phone number.
+Browser-accessible agent that reads a public Google Sheet and returns customer details when a user searches by full name, part of a name, or phone number.
 
 ## What It Does
 
 - Serves a browser form at `http://127.0.0.1:3000`
-- Accepts a customer phone number
+- Accepts a full name, part of a name, or phone number
 - Reads the `Customer Loyalty Program` Google Sheet tab through the public CSV export URL
-- Matches against the `Phone Number` column
-- Returns the matching `Customer ID`
+- Matches against the `Customer Name` or `Phone Number` columns
+- Returns the matching customer ID, loyalty ID, coupon details, and meal preference
 
 Current sample lookup:
 
 ```text
+Soumalya -> CUST10045
 2016588874 -> CUST10045
 ```
 
@@ -46,16 +47,35 @@ http://127.0.0.1:3000
 You can also call the API directly from a browser:
 
 ```text
-http://127.0.0.1:3000/api/customer-id?phoneNumber=2016588874
+http://127.0.0.1:3000/api/customer-id?query=Soumalya
+```
+
+Phone number searches are supported too:
+
+```text
+http://127.0.0.1:3000/api/customer-id?query=2016588874
 ```
 
 Expected JSON:
 
 ```json
 {
-  "message": "Customer ID found.",
-  "phone_number": "2016588874",
-  "customer_id": "CUST10045"
+  "message": "1 customer match found.",
+  "query": "Soumalya",
+  "matches": [
+    {
+      "customer_id": "CUST10045",
+      "loyalty_id": "LOY10045",
+      "coupon": {
+        "active": "Yes",
+        "offer": "15% on meat items",
+        "details": "15% off all meat items",
+        "valid_from": "2026-06-01",
+        "valid_until": "2026-12-31"
+      },
+      "meal_preference": "Non-Vegetarian"
+    }
+  ]
 }
 ```
 
