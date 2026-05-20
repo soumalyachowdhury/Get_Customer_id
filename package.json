@@ -1,5 +1,5 @@
 {
-  "name": "customer-id-lookup-agent",
+  "name": "get-customer-id",
   "version": "1.0.0",
   "private": true,
   "description": "Browser-accessible agent that looks up customer details from a Google Sheet by name or phone number.",

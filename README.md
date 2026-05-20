@@ -1,4 +1,4 @@
-# Customer ID Lookup Agent
+# Get Customer ID Agent
 
 Browser-accessible agent that reads a public Google Sheet and returns customer details when a user searches by full name, part of a name, or phone number.
 
@@ -136,8 +136,8 @@ git init
 git add README.md server.js package.json start-server.ps1 google_sheet_customer_agent.ps1 google_sheet_customer_agent.py .gitignore
 git commit -m "Add customer ID lookup agent"
 git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/customer-id-lookup-agent.git
+git remote add origin https://github.com/soumalyachowdhury/Get_Customer_id.git
 git push -u origin main
 ```
 
-Replace `YOUR_USERNAME` with your GitHub username, or replace the whole remote URL with your repository URL.
+The GitHub repository is `soumalyachowdhury/Get_Customer_id`.
