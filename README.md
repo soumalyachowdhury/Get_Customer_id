@@ -1,19 +1,19 @@
 # Customer ID Lookup Agent
 
-Browser-accessible agent that reads a public Google Sheet and returns a customer ID when a user enters their full name.
+Browser-accessible agent that reads a public Google Sheet and returns a customer ID when a user enters their phone number.
 
 ## What It Does
 
 - Serves a browser form at `http://127.0.0.1:3000`
-- Accepts a full customer name
+- Accepts a customer phone number
 - Reads the `Customer Loyalty Program` Google Sheet tab through the public CSV export URL
-- Matches against the `Customer Name` column
+- Matches against the `Phone Number` column
 - Returns the matching `Customer ID`
 
 Current sample lookup:
 
 ```text
-Soumalya Chowdhury -> CUST10045
+2016588874 -> CUST10045
 ```
 
 ## Files
@@ -46,14 +46,15 @@ http://127.0.0.1:3000
 You can also call the API directly from a browser:
 
 ```text
-http://127.0.0.1:3000/api/customer-id?fullName=Soumalya%20Chowdhury
+http://127.0.0.1:3000/api/customer-id?phoneNumber=2016588874
 ```
 
 Expected JSON:
 
 ```json
 {
-  "full_name": "Soumalya Chowdhury",
+  "message": "Customer ID found.",
+  "phone_number": "2016588874",
   "customer_id": "CUST10045"
 }
 ```

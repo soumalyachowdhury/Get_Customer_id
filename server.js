@@ -5,13 +5,6 @@ const SPREADSHEET_ID = "1NDTklJxtW9jLJYtqh9v-lXN1O_-6lEXi0MalVzL_QeQ";
 const GID = "1037034171";
 const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
-function normalizeName(value) {
-  return String(value || "")
-    .trim()
-    .replace(/\s+/g, " ")
-    .toLowerCase();
-}
-
 function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -54,7 +47,11 @@ function parseCsv(text) {
     );
 }
 
-async function getCustomerIdByName(fullName) {
+function normalizePhoneNumber(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+async function getCustomerIdByPhoneNumber(phoneNumber) {
   const response = await fetch(SHEET_CSV_URL);
   if (!response.ok) {
     throw new Error(`Google Sheets returned HTTP ${response.status}`);
@@ -62,7 +59,7 @@ async function getCustomerIdByName(fullName) {
 
   const rows = parseCsv(await response.text());
   const match = rows.find(
-    (row) => normalizeName(row["Customer Name"]) === normalizeName(fullName),
+    (row) => normalizePhoneNumber(row["Phone Number"]) === normalizePhoneNumber(phoneNumber),
   );
 
   return match ? match["Customer ID"] : null;
@@ -184,9 +181,9 @@ function sendHtml(res) {
   <main>
     <h1>Customer ID Lookup</h1>
     <form id="lookup-form">
-      <label for="fullName">Full name</label>
+      <label for="phoneNumber">Phone number</label>
       <div class="row">
-        <input id="fullName" name="fullName" autocomplete="name" placeholder="Soumalya Chowdhury" required>
+        <input id="phoneNumber" name="phoneNumber" autocomplete="tel" inputmode="tel" placeholder="2016588874" required>
         <button type="submit">Search</button>
       </div>
     </form>
@@ -195,25 +192,25 @@ function sendHtml(res) {
 
   <script>
     const form = document.querySelector("#lookup-form");
-    const input = document.querySelector("#fullName");
+    const input = document.querySelector("#phoneNumber");
     const button = document.querySelector("button");
     const result = document.querySelector("#result");
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const fullName = input.value.trim();
-      if (!fullName) return;
+      const phoneNumber = input.value.trim();
+      if (!phoneNumber) return;
 
       button.disabled = true;
       result.className = "";
       result.textContent = "Searching...";
 
       try {
-        const response = await fetch("/api/customer-id?fullName=" + encodeURIComponent(fullName));
+        const response = await fetch("/api/customer-id?phoneNumber=" + encodeURIComponent(phoneNumber));
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || "Lookup failed");
+          throw new Error(data.message || data.error || "Lookup failed");
         }
 
         if (data.customer_id) {
@@ -221,7 +218,7 @@ function sendHtml(res) {
           result.textContent = "Customer ID: " + data.customer_id;
         } else {
           result.className = "error";
-          result.textContent = "No customer found for that full name.";
+          result.textContent = "No customer found for that phone number.";
         }
       } catch (error) {
         result.className = "error";
@@ -244,18 +241,25 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url.pathname === "/api/customer-id") {
-    const fullName = url.searchParams.get("fullName");
-    if (!fullName) {
-      sendJson(res, 400, { error: "fullName is required" });
+    const phoneNumber = url.searchParams.get("phoneNumber");
+    if (!phoneNumber) {
+      sendJson(res, 400, { message: "phoneNumber is required", customer_id: null });
       return;
     }
 
     try {
-      const customerId = await getCustomerIdByName(fullName);
-      sendJson(res, 200, { full_name: fullName, customer_id: customerId });
+      const customerId = await getCustomerIdByPhoneNumber(phoneNumber);
+      sendJson(res, 200, {
+        message: customerId
+          ? "Customer ID found."
+          : "No customer found for that phone number.",
+        phone_number: phoneNumber,
+        customer_id: customerId,
+      });
     } catch (error) {
       sendJson(res, 502, {
-        error: "Could not read the Google Sheet. Check internet access and sheet sharing.",
+        message: "Could not read the Google Sheet. Check internet access and sheet sharing.",
+        customer_id: null,
         detail: error.message,
       });
     }
