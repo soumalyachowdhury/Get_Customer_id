@@ -1,19 +1,21 @@
 # Get Customer ID Agent
 
-Browser-accessible agent that reads a public Google Sheet and returns the full customer record as JSON when a user searches by full name, part of a name, or phone number.
+Browser-accessible agent that reads a public Google Sheet and returns the full customer record as JSON when a user searches by customer ID, loyalty ID, full name, part of a name, or phone number.
 
 ## What It Does
 
 - Serves a browser form at `http://127.0.0.1:3000`
-- Accepts a full name, part of a name, or phone number
+- Accepts a customer ID, loyalty ID, full name, part of a name, or phone number
 - Reads the `Customer Loyalty Program` Google Sheet tab through the public CSV export URL
-- Matches against the `Customer Name` or `Phone Number` columns
+- Matches against the `Customer ID`, `Loyalty ID`, `Customer Name`, or `Phone Number` columns
 - Returns the full matching customer record in JSON format
 
 Current sample lookup:
 
 ```text
 Soumalya -> CUST10045
+CUST10045 -> CUST10045
+LOY10045 -> CUST10045
 2016588874 -> CUST10045
 ```
 
@@ -48,6 +50,13 @@ You can also call the API directly from a browser:
 
 ```text
 http://127.0.0.1:3000/api/customer-id?query=Soumalya
+```
+
+Customer ID and loyalty ID searches are supported too:
+
+```text
+http://127.0.0.1:3000/api/customer-id?query=CUST10045
+http://127.0.0.1:3000/api/customer-id?query=LOY10045
 ```
 
 Phone number searches are supported too:

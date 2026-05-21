@@ -37,10 +37,14 @@ class GoogleSheetCustomerIdAgent:
         for row in rows:
             customer_name = normalize_text(row.get("Customer Name"))
             customer_phone = normalize_phone_number(row.get("Phone Number"))
+            customer_id = normalize_text(row.get("Customer ID"))
+            loyalty_id = normalize_text(row.get("Loyalty ID"))
             phone_match = looks_like_phone and customer_phone == search_phone
             name_match = bool(search_text and search_text in customer_name)
+            customer_id_match = bool(search_text and customer_id == search_text)
+            loyalty_id_match = bool(search_text and loyalty_id == search_text)
 
-            if phone_match or name_match:
+            if phone_match or name_match or customer_id_match or loyalty_id_match:
                 matches.append(customer_record(row))
 
         return {
@@ -55,7 +59,7 @@ class GoogleSheetCustomerIdAgent:
 
 
 if __name__ == "__main__":
-    query = input("Name or phone number: ").strip()
+    query = input("Customer ID, loyalty ID, name, or phone number: ").strip()
     agent = GoogleSheetCustomerIdAgent(
         spreadsheet_id="1NDTklJxtW9jLJYtqh9v-lXN1O_-6lEXi0MalVzL_QeQ",
         gid="1037034171",

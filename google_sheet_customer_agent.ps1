@@ -1,4 +1,4 @@
-$Query = Read-Host "Name or phone number"
+$Query = Read-Host "Customer ID, loyalty ID, name, or phone number"
 $SpreadsheetId = "1NDTklJxtW9jLJYtqh9v-lXN1O_-6lEXi0MalVzL_QeQ"
 $Gid = "1037034171"
 $CsvUrl = "https://docs.google.com/spreadsheets/d/$SpreadsheetId/export?format=csv&gid=$Gid"
@@ -14,8 +14,14 @@ $LooksLikePhoneNumber = $SearchPhoneNumber.Length -ge 7
 $Matches = $Rows | Where-Object {
     $CustomerName = (($_."Customer Name").Trim() -replace "\s+", " ").ToLower()
     $CustomerPhoneNumber = $_."Phone Number" -replace "\D", ""
+    $CustomerId = (($_."Customer ID").Trim() -replace "\s+", " ").ToLower()
+    $LoyaltyId = (($_."Loyalty ID").Trim() -replace "\s+", " ").ToLower()
     ($LooksLikePhoneNumber -and $CustomerPhoneNumber -eq $SearchPhoneNumber) -or
-        ($SearchText -and $CustomerName.Contains($SearchText))
+        ($SearchText -and (
+            $CustomerName.Contains($SearchText) -or
+            $CustomerId -eq $SearchText -or
+            $LoyaltyId -eq $SearchText
+        ))
 } | ForEach-Object {
     $Record = [ordered]@{}
     $_.PSObject.Properties | ForEach-Object {

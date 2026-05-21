@@ -73,12 +73,19 @@ function findCustomers(rows, query) {
     .filter((row) => {
       const customerName = normalizeText(row["Customer Name"]);
       const customerPhone = normalizePhoneNumber(row["Phone Number"]);
+      const customerId = normalizeText(row["Customer ID"]);
+      const loyaltyId = normalizeText(row["Loyalty ID"]);
 
       if (looksLikePhone && customerPhone === searchPhone) {
         return true;
       }
 
-      return Boolean(searchText && customerName.includes(searchText));
+      return Boolean(
+        searchText &&
+          (customerName.includes(searchText) ||
+            customerId === searchText ||
+            loyaltyId === searchText),
+      );
     })
     .map(customerRecord);
 }
@@ -226,7 +233,7 @@ function sendHtml(res) {
     <form id="lookup-form">
       <label for="query">Name or phone number</label>
       <div class="row">
-        <input id="query" name="query" autocomplete="on" placeholder="Soumalya or 2016588874" required>
+        <input id="query" name="query" autocomplete="on" placeholder="Soumalya, CUST10045, LOY10045, or 2016588874" required>
         <button type="submit">Search</button>
       </div>
     </form>
@@ -292,7 +299,8 @@ const server = http.createServer(async (req, res) => {
 
     if (!query) {
       sendJson(res, 400, {
-        message: "query is required. Search by full name, part of a name, or phone number.",
+        message:
+          "query is required. Search by customer ID, loyalty ID, full name, part of a name, or phone number.",
         matches: [],
       });
       return;
