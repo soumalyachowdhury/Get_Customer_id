@@ -1,6 +1,6 @@
 # Get Customer ID Agent
 
-Browser-accessible agent that reads a public Google Sheet and returns customer details when a user searches by full name, part of a name, or phone number.
+Browser-accessible agent that reads a public Google Sheet and returns the full customer record as JSON when a user searches by full name, part of a name, or phone number.
 
 ## What It Does
 
@@ -8,7 +8,7 @@ Browser-accessible agent that reads a public Google Sheet and returns customer d
 - Accepts a full name, part of a name, or phone number
 - Reads the `Customer Loyalty Program` Google Sheet tab through the public CSV export URL
 - Matches against the `Customer Name` or `Phone Number` columns
-- Returns the matching customer ID, loyalty ID, coupon details, and meal preference
+- Returns the full matching customer record in JSON format
 
 Current sample lookup:
 
@@ -64,16 +64,15 @@ Expected JSON:
   "query": "Soumalya",
   "matches": [
     {
-      "customer_id": "CUST10045",
-      "loyalty_id": "LOY10045",
-      "coupon": {
-        "active": "Yes",
-        "offer": "15% on meat items",
-        "details": "15% off all meat items",
-        "valid_from": "2026-06-01",
-        "valid_until": "2026-12-31"
-      },
-      "meal_preference": "Non-Vegetarian"
+      "Customer ID": "CUST10045",
+      "Loyalty ID": "LOY10045",
+      "Customer Name": "Soumalya Chowdhury",
+      "Phone Number": "2016588874",
+      "Family Size": "4",
+      "Dietary Preference": "Non-Vegetarian",
+      "Active Coupon": "Yes",
+      "Coupon Details": "15% off all meat items",
+      "Coupon": "15% on meat items"
     }
   ]
 }

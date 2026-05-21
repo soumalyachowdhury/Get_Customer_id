@@ -2,7 +2,7 @@
   "name": "get-customer-id",
   "version": "1.0.0",
   "private": true,
-  "description": "Browser-accessible agent that looks up customer details from a Google Sheet by name or phone number.",
+  "description": "Browser-accessible agent that returns full customer records from a Google Sheet by name or phone number.",
   "scripts": {
     "start": "node server.js"
   },

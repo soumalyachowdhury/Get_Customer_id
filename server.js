@@ -58,19 +58,10 @@ function normalizeText(value) {
     .toLowerCase();
 }
 
-function customerResult(row) {
-  return {
-    customer_id: row["Customer ID"] || null,
-    loyalty_id: row["Loyalty ID"] || null,
-    coupon: {
-      active: row["Active Coupon"] || null,
-      offer: row["Coupon"] || null,
-      details: row["Coupon Details"] || null,
-      valid_from: row["Coupon Valid From"] || null,
-      valid_until: row["Coupon Valid Until"] || null,
-    },
-    meal_preference: row["Dietary Preference"] || null,
-  };
+function customerRecord(row) {
+  return Object.fromEntries(
+    Object.entries(row).map(([key, value]) => [key, value === "" ? null : value]),
+  );
 }
 
 function findCustomers(rows, query) {
@@ -89,7 +80,7 @@ function findCustomers(rows, query) {
 
       return Boolean(searchText && customerName.includes(searchText));
     })
-    .map(customerResult);
+    .map(customerRecord);
 }
 
 async function searchCustomers(query) {
@@ -193,6 +184,21 @@ function sendHtml(res) {
       line-height: 1.4;
     }
 
+    pre {
+      margin: 18px 0 0;
+      max-height: 420px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f8fafc;
+      border: 1px solid #d9e2ef;
+      border-radius: 6px;
+      padding: 14px;
+      color: #18212f;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
     .success {
       color: #0f766e;
       font-weight: 700;
@@ -251,14 +257,9 @@ function sendHtml(res) {
         }
 
         if (data.matches && data.matches.length) {
-          const customer = data.matches[0];
           result.className = "success";
-          result.innerHTML = [
-            "<strong>Customer ID:</strong> " + customer.customer_id,
-            "<strong>Loyalty ID:</strong> " + customer.loyalty_id,
-            "<strong>Coupon:</strong> " + (customer.coupon.offer || customer.coupon.details || "None"),
-            "<strong>Meal preference:</strong> " + (customer.meal_preference || "Not listed"),
-          ].join("<br>");
+          result.innerHTML = "Customer record found.<pre></pre>";
+          result.querySelector("pre").textContent = JSON.stringify(data, null, 2);
         } else {
           result.className = "error";
           result.textContent = "No customer found for that search.";

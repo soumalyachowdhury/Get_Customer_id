@@ -12,19 +12,8 @@ def normalize_text(value):
     return " ".join(str(value or "").strip().lower().split())
 
 
-def customer_result(row):
-    return {
-        "customer_id": row.get("Customer ID") or None,
-        "loyalty_id": row.get("Loyalty ID") or None,
-        "coupon": {
-            "active": row.get("Active Coupon") or None,
-            "offer": row.get("Coupon") or None,
-            "details": row.get("Coupon Details") or None,
-            "valid_from": row.get("Coupon Valid From") or None,
-            "valid_until": row.get("Coupon Valid Until") or None,
-        },
-        "meal_preference": row.get("Dietary Preference") or None,
-    }
+def customer_record(row):
+    return {key: value or None for key, value in row.items()}
 
 
 class GoogleSheetCustomerIdAgent:
@@ -52,7 +41,7 @@ class GoogleSheetCustomerIdAgent:
             name_match = bool(search_text and search_text in customer_name)
 
             if phone_match or name_match:
-                matches.append(customer_result(row))
+                matches.append(customer_record(row))
 
         return {
             "message": (

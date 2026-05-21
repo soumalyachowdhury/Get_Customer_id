@@ -17,22 +17,15 @@ $Matches = $Rows | Where-Object {
     ($LooksLikePhoneNumber -and $CustomerPhoneNumber -eq $SearchPhoneNumber) -or
         ($SearchText -and $CustomerName.Contains($SearchText))
 } | ForEach-Object {
-    [PSCustomObject]@{
-        customer_id = $_."Customer ID"
-        loyalty_id = $_."Loyalty ID"
-        coupon = [PSCustomObject]@{
-            active = $_."Active Coupon"
-            offer = $_."Coupon"
-            details = $_."Coupon Details"
-            valid_from = $_."Coupon Valid From"
-            valid_until = $_."Coupon Valid Until"
-        }
-        meal_preference = $_."Dietary Preference"
+    $Record = [ordered]@{}
+    $_.PSObject.Properties | ForEach-Object {
+        $Record[$_.Name] = if ($_.Value -eq "") { $null } else { $_.Value }
     }
+    [PSCustomObject]$Record
 }
 
 [PSCustomObject]@{
     message = if ($Matches.Count) { "$($Matches.Count) customer match$(if ($Matches.Count -eq 1) { '' } else { 'es' }) found." } else { "No customer found for that search." }
     query = $Query
     matches = @($Matches)
-} | ConvertTo-Json -Depth 4
+} | ConvertTo-Json -Depth 6
