@@ -52,6 +52,8 @@ You can also call the API directly from a browser:
 http://127.0.0.1:3000/api/customer-id?query=Soumalya
 ```
 
+Use `query` for any supported search value: customer ID, loyalty ID, part of a name, full name, or phone number.
+
 Customer ID and loyalty ID searches are supported too:
 
 ```text
@@ -63,6 +65,15 @@ Phone number searches are supported too:
 
 ```text
 http://127.0.0.1:3000/api/customer-id?query=2016588874
+```
+
+The API also accepts specific parameter names when needed:
+
+```text
+http://127.0.0.1:3000/api/customer-id?customerId=CUST10045
+http://127.0.0.1:3000/api/customer-id?loyaltyId=LOY10045
+http://127.0.0.1:3000/api/customer-id?name=Soumalya
+http://127.0.0.1:3000/api/customer-id?phoneNumber=2016588874
 ```
 
 Expected JSON:

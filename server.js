@@ -231,7 +231,7 @@ function sendHtml(res) {
   <main>
     <h1>Customer ID Lookup</h1>
     <form id="lookup-form">
-      <label for="query">Name or phone number</label>
+      <label for="query">Customer ID, loyalty ID, name, or phone number</label>
       <div class="row">
         <input id="query" name="query" autocomplete="on" placeholder="Soumalya, CUST10045, LOY10045, or 2016588874" required>
         <button type="submit">Search</button>
@@ -294,6 +294,9 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === "/api/customer-id") {
     const query =
       url.searchParams.get("query") ||
+      url.searchParams.get("q") ||
+      url.searchParams.get("customerId") ||
+      url.searchParams.get("loyaltyId") ||
       url.searchParams.get("name") ||
       url.searchParams.get("phoneNumber");
 
