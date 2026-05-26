@@ -44,11 +44,7 @@ Then open:
 http://127.0.0.1:3000
 ```
 
-If another old local server is already using port `3000`, the launcher automatically falls back to:
-
-```text
-http://127.0.0.1:3001
-```
+If another local server is already using port `3000`, stop that server first and run `start-server.ps1` again.
 
 ## Direct API Access
 

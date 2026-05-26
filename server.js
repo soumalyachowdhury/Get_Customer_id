@@ -1,6 +1,6 @@
 const http = require("node:http");
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = 3000;
 const SPREADSHEET_ID = "1NDTklJxtW9jLJYtqh9v-lXN1O_-6lEXi0MalVzL_QeQ";
 const GID = "1037034171";
 const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
@@ -331,6 +331,17 @@ const server = http.createServer(async (req, res) => {
   sendJson(res, 404, { error: "Not found" });
 });
 
-server.listen(PORT, () => {
-  console.log(`Customer lookup agent running at http://localhost:${PORT}`);
+server.on("error", (error) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(
+      "Port 3000 is already in use. Stop the existing local server, then run start-server.ps1 again.",
+    );
+    process.exit(1);
+  }
+
+  throw error;
+});
+
+server.listen(PORT, "127.0.0.1", () => {
+  console.log(`Customer lookup agent running at http://127.0.0.1:${PORT}`);
 });
