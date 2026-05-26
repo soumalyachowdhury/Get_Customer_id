@@ -44,6 +44,12 @@ Then open:
 http://127.0.0.1:3000
 ```
 
+If another old local server is already using port `3000`, the launcher automatically falls back to:
+
+```text
+http://127.0.0.1:3001
+```
+
 ## Direct API Access
 
 You can also call the API directly from a browser:
